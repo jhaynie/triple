@@ -27,35 +27,68 @@ $ triple
 > alert('hello, world!');
 ```
 
-You can also load from the command line:
+You can also load in Javascript files from the command line, either locally or from a URL:
 
 ```bash
-$ triple https://gist.githubusercontent.com/jhaynie/87c5c794203c13b6ac43/raw/f4a551a1580caad5d49282161d22182351028053/window.js
-[creating app]
-[loading app]
-var w = Ti.UI.createWindow();
-w.open();
-w.backgroundColor = 'red';
-
-> 'red'
+$ triple ./app.js
 ```
-
-How about loading from within the repl?
 
 ```bash
-> .load https://gist.githubusercontent.com/jhaynie/87c5c794203c13b6ac43/raw/f4a551a1580caad5d49282161d22182351028053/window.js
+$ triple http://bit.ly/1zc7Nvo
 ```
-
 You can also load with a delay which will load each command line-by-line in the console so you can see the return value of each line of code.
 
 ```bash
-> .load https://gist.githubusercontent.com/jhaynie/87c5c794203c13b6ac43/raw/f4a551a1580caad5d49282161d22182351028053/window.js 2000
+$ triple http://bit.ly/1zc7Nvo 2000
+```
+### Triple commands
+
+Triple includes a few commands to control its operations. These must be preceded by the dot (.) to be recognized as commands.
+
+ * `.exit` -- exits the REPL
+ * `.load` -- load a JavaScript file from local path or URL
+ * `.save filespec` -- saves your history
+ * `.clear` -- clear memory and reset the simulator/emulator
+
+#### .load 
+
+Load a series of Titanium JavaScript statements from a local file or URL:
+
+```
+.load filespec [delay]
 ```
 
-Or a delay from the command line:
+where `filespec` is a local path or URL and `delay` is an optional delay (milliseconds) to add between the execution of each command.
+
+Example:
 
 ```bash
-$ triple https://gist.githubusercontent.com/jhaynie/87c5c794203c13b6ac43/raw/f4a551a1580caad5d49282161d22182351028053/window.js 2000
+$ triple
+[creating app]
+[loading app]
+> .load myDemo.js 1000
+```
+
+#### .save
+
+Save your history to a file:
+
+```
+.save filespec
+```
+where `filespec` is a path and file name. If the path is omitted, the current directory is assumed. For example:
+
+```bash
+$ triple
+[creating app]
+[loading app]
+> var w = Ti.UI.createWindow();
+undefined
+> w.open();
+undefined
+> w.backgroundColor = 'red';
+'red'
+> .save ./myTripleLog.js
 ```
 
 ## Support
