@@ -6,8 +6,11 @@
 
 ## Features
 
-* Full access to [Titanium API](http://docs.appcelerator.com/titanium/latest/#!/api)
+* Full access to [Titanium API](http://docs.appcelerator.com/titanium/latest/#!/api), including tab completion for Titanium namespaces
 * Command history (&uarr;,&darr;)
+* Save and load REPL sessions
+* Add files and native Titanium modules to REPL
+* `require()` commonjs modules at runtime straight from the filesystem
 * Multi-line statements
 * Color-coded return values, by type
 * Much more coming (see [enhancements](https://github.com/tonylukasavage/triple/issues?labels=enhancement&milestone=&page=1&state=open))
@@ -20,75 +23,113 @@ $ npm install -g triple
 
 ## Usage
 
-```bash
-$ triple
-[creating app]
-[loading app]
-> alert('hello, world!');
+```
+≫ triple -h
+
+  Usage: triple [options] [file [delay]]
+
+  Options:
+
+    -h, --help                      output usage information
+    -V, --version                   output the version number
+    -m, --module <ids>              Add native module(s) to REPL
+    -I, --ios-version <iosVersion>  select the ios version to use
+    -v, --verbose                   Enable verbose output
+
+  Examples:
+
+    basic REPL
+    $ triple
+    [creating app]
+    [loading app]
+    > alert('hello, world!');
+
+    load by file or url, with optional delay between lines
+    $ triple /path/to/file.js
+    $ triple http://bit.ly/1zc7Nvo
+    $ triple /path/to/file.js 2000
+
+    add native module(s) to REPL by id
+    $ triple --module ti.paint
+    $ triple --module some.module,another.module
 ```
 
-You can also load in Javascript files from the command line, either locally or from a URL:
+## triple commands
 
-```bash
-$ triple ./app.js
-```
+triple includes a few commands to control its operations. These must be preceded by the dot (.) to be recognized as commands.
 
-```bash
-$ triple http://bit.ly/1zc7Nvo
-```
-You can also load with a delay which will load each command line-by-line in the console so you can see the return value of each line of code.
+### .add [file ...]
 
-```bash
-$ triple http://bit.ly/1zc7Nvo 2000
-```
-### Triple commands
-
-Triple includes a few commands to control its operations. These must be preceded by the dot (.) to be recognized as commands.
-
- * `.exit` -- exits the REPL
- * `.load` -- load a JavaScript file from local path or URL
- * `.save filespec` -- saves your history
- * `.clear` -- clear memory and reset the simulator/emulator
-
-#### .load 
-
-Load a series of Titanium JavaScript statements from a local file or URL:
-
-```
-.load filespec [delay]
-```
-
-where `filespec` is a local path or URL and `delay` is an optional delay (milliseconds) to add between the execution of each command.
-
-Example:
+Add file(s) to REPL at runtime.
 
 ```bash
 $ triple
-[creating app]
-[loading app]
-> .load myDemo.js 1000
+> .add /path/to/image.png
+> var image = Ti.UI.createImageView({image:'image.png'});
 ```
 
-#### .save
+### .break
 
-Save your history to a file:
-
-```
-.save filespec
-```
-where `filespec` is a path and file name. If the path is omitted, the current directory is assumed. For example:
+Abort a multi-line statement.
 
 ```bash
 $ triple
-[creating app]
-[loading app]
-> var w = Ti.UI.createWindow();
+> for (var i = 0; i < 100; i++) {
+... // i want to stop this statement
+... .break
+>
+```
+
+### .clear
+
+Create a new execution context for the current REPL.
+
+```bash
+$ triple
+> var foo = 123;
 undefined
-> w.open();
+> foo
+123
+> .clear
+> foo
+ReferenceError: Can't find variable: foo
+>
+```
+
+### .exit
+
+Exits the REPL.
+
+```bash
+$ triple
+> .exit
+$
+```
+
+### .help
+
+Shows command help in the REPL.
+
+### .load <file> [delay]
+
+Load a local or remote Javascript file line by line in to the REPL. A `delay` between each line of code's execution can be specified in milliseconds. If `<file>` is a directory, triple will attempt to load `app.js` then `index.js` from the directory.
+
+```bash
+$ triple
+> .load ./app.js
+> .load http://bit.ly/1zc7Nvo
+> .load http://bit.ly/1zc7Nvo 2000
+```
+
+### .save <file>
+
+Saves the current REPL session to a file. This file can be loaded in triple later with `.load`.
+
+```bash
+$ triple
+> Ti.UI.createWindow({backgroundColor:'#a00'}).open();
 undefined
-> w.backgroundColor = 'red';
-'red'
-> .save ./myTripleLog.js
+> .save ./test.js
 ```
 
 ## Support
@@ -103,6 +144,7 @@ Support for all of Appcelerator's supported platforms is planned. Windows OS sup
 
 ## Known Issues
 
-### `this.Kroll`
+Aside from the [issues](https://github.com/tonylukasavage/triple/issues) in this repo, here's some other known issues with Titanium that you might encounter when using triple.
 
-Trying to inspect `this.Kroll` on iOS will cause a fatal error. This is due to the fact that `this.Kroll` is not a genuine Javascript object. It will be skipped if your inspect `this`, and it will crash the app if you try to inspect it directly.
+* \[[TIMOB-17449](https://jira.appcelerator.org/browse/TIMOB-17449)\] - iOS: this.Kroll cannot be inspected, and throws errors when you try
+* \[[TIMOB-17448](https://jira.appcelerator.org/browse/TIMOB-17448)\] - iOS: error when commonjs module exports certain types (anything other than function, object, or string). _**Fixed in Titanium 3.4.0**_.

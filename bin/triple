@@ -1,20 +1,56 @@
 #!/usr/bin/env node
 
 var chalk = require('chalk'),
-	error = chalk.bold.red,
+	format = require('util').format,
+	logger = require('../lib/logger'),
 	program = require('commander'),
-	triple = require('..');
+	triple = require('..'),
+	util = require('../lib/util');
+
+var $u = chalk.underline,
+	$c = chalk.cyan;
 
 program.description('REPL for Titanium')
 	.version(require('../package.json').version)
-	.usage('[options]')
+	.usage(format('[options] [%s [%s]]', $u('file'), $u('delay')))
+	.option('-m, --module <ids>', 'Add native module(s) to REPL', function list(val) {
+		return val.split(',');
+	})
+	.option('-I, --ios-version <iosVersion>', 'select the ios version to use')
 	.option('-v, --verbose', 'Enable verbose output')
+
+program.on('--help', function(){
+	console.log('  Examples:');
+	console.log('');
+	console.log('    ' + $u('basic REPL'));
+	console.log('    $ triple');
+	console.log('    [creating app]');
+	console.log('    [loading app]');
+	console.log('    > alert(\'hello, world!\');');
+	console.log('');
+	console.log('    ' + $u('load by file or url, with optional delay between lines'));
+	console.log('    $ triple /path/to/file.js');
+	console.log('    $ triple http://bit.ly/1zc7Nvo');
+	console.log('    $ triple /path/to/file.js 2000');
+	console.log('');
+	console.log('    ' + $u('add native module(s) to REPL by id'));
+	console.log('    $ triple --module ti.paint');
+	console.log('    $ triple --module some.module,another.module');
+	console.log('');
+	console.log('  Commands:');
+	console.log('');
+	console.log('    triple commands are executed in the REPL. All are prefixed with a ".".');
+	console.log('');
+
+	util.printCommands();
+});
 
 program.parse(process.argv);
 
 triple(program, function(err) {
 	if (err) {
-		console.error(error(err.toString()));
+		logger.error(err.toString());
+		process.exit(1);
 	} else {
 		process.exit();
 	}
